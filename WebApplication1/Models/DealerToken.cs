@@ -1,6 +1,3 @@
-using System;
-using Dapper;
-
 namespace WebApplication1.Models
 {
     public class DealerToken

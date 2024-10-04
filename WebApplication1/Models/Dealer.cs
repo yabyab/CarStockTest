@@ -1,7 +1,3 @@
-using System;
-using System.Data.SQLite;
-using Dapper;
-
 namespace WebApplication1.Models
 {
     public class Dealer

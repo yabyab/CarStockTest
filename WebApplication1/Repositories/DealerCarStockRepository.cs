@@ -1,7 +1,4 @@
-using System.CodeDom;
 using System.Data.SQLite;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using Dapper;
 using WebApplication1.Models;
 

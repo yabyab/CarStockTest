@@ -1,6 +1,5 @@
 using Microsoft.IdentityModel.Tokens;
 
-using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Data.SQLite;
 using System.Security.Claims;
@@ -9,7 +8,6 @@ using System.Text;
 using WebApplication1.Models;
 using WebApplication1.Repositories;
 using Dapper;
-using System.Diagnostics;
 
 namespace WebApplication1{
     public class JwtAuthenticationManager{
