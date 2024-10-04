@@ -18,7 +18,7 @@ namespace WebApplication1{
             // TODO update it into Dealer DB Search for user validation
             int resDealerId;
             if(dealerid == null){
-                DealerLocalController dealerRepo = new DealerLocalController();
+                DealerRepository dealerRepo = new DealerRepository(new ConfigurationBuilder().AddJsonFile("appsettings.json").Build());
                 Dealer res = dealerRepo.GetDealerByNameAndEmail(dealername, email);
                 Console.WriteLine(res == null ? "Nothing can be query from LocalController" : res.Print());
                 

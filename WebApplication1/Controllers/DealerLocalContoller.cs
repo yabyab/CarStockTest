@@ -17,8 +17,8 @@ namespace WebApplication1.Controllers
 
         public DealerLocalController()
         {
-            var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("ConnectionStrings")["DefaultConnection"];
-            this.sqLiteConnStr = configuration;
+            var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+            this.sqLiteConnStr = configuration.GetSection("ConnectionStrings")[Constants.CONN_STRING_SECTION];;
         }
         
 

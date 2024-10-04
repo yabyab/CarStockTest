@@ -71,9 +71,18 @@ namespace WebApplication1.Repositories
             }
         }
 
+        public Dealer GetDealerByNameAndEmail(string name, string email)
+        {
+            using(var connection = GetConnection())
+            {
+                var dealer = connection.QueryFirstOrDefault<Dealer>("SELECT * FROM Dealer WHERE dealername = @dealername AND dealeremail = @dealeremail", new{ dealername = name, dealeremail = email});
+                return dealer;
+            }
+        }
+
         private SQLiteConnection  GetConnection()
         {
-            return new SQLiteConnection (_configuration.GetConnectionString("DefaultConnection"));
+            return new SQLiteConnection (_configuration.GetConnectionString(Constants.CONN_STRING_SECTION));
         }
     }
 }

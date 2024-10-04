@@ -280,7 +280,7 @@ namespace WebApplication1.Repositories{
 
         private SQLiteConnection  GetConnection()
         {
-            return new SQLiteConnection (_configuration.GetConnectionString("DefaultConnection"));
+            return new SQLiteConnection (_configuration.GetConnectionString(Constants.CONN_STRING_SECTION));
         }
 
         private string GetDealeCarStockSql(int withWhereClause, string customCondition = "")
