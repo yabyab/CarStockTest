@@ -7,6 +7,6 @@ namespace WebApplication1.Models{
     {
         public string? token { get; set; }
         public int user_id { get; set; }
-        public int duration {get; set; }
+        public string expired_at {get; set; }
     }
 }

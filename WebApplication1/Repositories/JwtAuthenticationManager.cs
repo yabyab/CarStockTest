@@ -1,14 +1,15 @@
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.IdentityModel.JsonWebTokens;
-using System.IdentityModel.Tokens.Jwt;
+
 using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Data.SQLite;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.AspNetCore.Mvc;
 
 using WebApplication1.Models;
 using WebApplication1.Repositories;
-using WebApplication1.Controllers;
+using Dapper;
+using System.Diagnostics;
 
 namespace WebApplication1{
     public class JwtAuthenticationManager{
@@ -33,7 +34,7 @@ namespace WebApplication1{
                 resDealerId = (int)dealerid;
             }
 
-            var tokenExpiryTimeStamp = DateTime.Now.AddMinutes(Constants.JWT_TOKEN_VALID_MIN);
+            var tokenExpiryTimeStamp = DateTime.UtcNow.AddMinutes(Constants.JWT_TOKEN_VALID_MIN);
             var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
             var tokenKey = Encoding.ASCII.GetBytes(Constants.JWT_SECURITY_KEY);
             var securityTokenDescriptor = new SecurityTokenDescriptor
@@ -51,12 +52,75 @@ namespace WebApplication1{
             var securityToken = jwtSecurityTokenHandler.CreateToken(securityTokenDescriptor);
             var token = jwtSecurityTokenHandler.WriteToken(securityToken);
 
+            bool isValidSave = this.InsertUpdateDealerLoginToken(token, resDealerId, tokenExpiryTimeStamp.ToString("yyyy-MM-dd HH:mm:ss"));
+            if(!isValidSave){
+                throw new Exception("Cannot Save Generated Token.");
+            }
+
             return new JwtAuthResponse
             {
                 token = token,
                 user_id = resDealerId,
-                duration = (int)tokenExpiryTimeStamp.Subtract(DateTime.Now).TotalSeconds
+                expired_at = tokenExpiryTimeStamp.ToString("yyyy-MM-dd HH:mm:ss")
             };
+        }
+
+        private bool InsertUpdateDealerLoginToken(string token, int dealerid, string expired_at)
+        {
+            using(var connection = GetConnection())
+            {
+                string sqlStr = "";
+                Debugger.Break();
+                connection.Open();
+                using(var transaction = connection.BeginTransaction()){
+                    sqlStr = @"SELECT *
+                        FROM DealerToken 
+                        WHERE dealerid = @dealerId;";
+                    var extToken = connection.QueryFirstOrDefault<DealerToken>(
+                        sqlStr,
+                        new {dealerId = dealerid}, transaction);
+                    int res;
+                    if(extToken != null){
+                        sqlStr = @"
+                        UPDATE DealerToken SET token=@token, expired_at=@expired_at
+                        WHERE id=@Id AND dealerid=@dealerid;";
+                        res = connection.Execute(sqlStr,
+                        new{
+                            token = token,
+                            expired_at = expired_at,
+                            Id = extToken.id,
+                            dealerid = dealerid
+                        },
+                        transaction);
+                    }else{
+                        sqlStr = @"
+                        INSERT INTO DealerToken (dealerid, token, expired_at)
+                        VALUES (@dealerid, @token, @expired_at);";
+                        res = connection.Execute(sqlStr,
+                        new{
+                            dealerid = dealerid,
+                            token = token,
+                            expired_at = expired_at
+                        },
+                        transaction);
+                    }
+
+                    if(res <= 0){
+                        transaction.Rollback();
+                        connection.Close();
+                        return false;
+                    }else{
+                        transaction.Commit();   
+                        connection.Close();
+                        return true;
+                    }
+                }
+            }
+        }
+
+        private SQLiteConnection  GetConnection()
+        {
+            return new SQLiteConnection (_configuration.GetConnectionString(Constants.CONN_STRING_SECTION));
         }
     }
 }

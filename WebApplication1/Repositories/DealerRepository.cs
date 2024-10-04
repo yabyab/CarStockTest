@@ -1,5 +1,4 @@
 using System.Data.SQLite;
-using System.Diagnostics;
 using Dapper;
 using WebApplication1.Models;
 
@@ -25,7 +24,6 @@ namespace WebApplication1.Repositories
         {
             using(var connection = GetConnection()){
                 await connection.OpenAsync();
-                Debugger.Break();
                 using(var transaction = await connection.BeginTransactionAsync()){
                     int? recCnt = await connection.QuerySingleOrDefaultAsync<int>(@"SELECT count(dealerid) FROM Dealer WHERE dealername = @dealername AND dealeremail = @dealeremail",
                         new{
