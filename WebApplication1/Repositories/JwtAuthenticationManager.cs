@@ -12,13 +12,15 @@ using WebApplication1.Controllers;
 
 namespace WebApplication1{
     public class JwtAuthenticationManager{
+        private IConfiguration _configuration;
         public JwtAuthResponse? Authenticate (string dealername, string email, int? dealerid)
         {
-            //Validate dealerName and email in hardcode.
-            // TODO update it into Dealer DB Search for user validation
+            _configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+            string jwtIssure = _configuration.GetSection("JwtSettings")["Issuer"];
+            
             int resDealerId;
             if(dealerid == null){
-                DealerRepository dealerRepo = new DealerRepository(new ConfigurationBuilder().AddJsonFile("appsettings.json").Build());
+                DealerRepository dealerRepo = new DealerRepository(_configuration);
                 Dealer res = dealerRepo.GetDealerByNameAndEmail(dealername, email);
                 Console.WriteLine(res == null ? "Nothing can be query from LocalController" : res.Print());
                 
@@ -38,9 +40,10 @@ namespace WebApplication1{
             {
                 Subject = new System.Security.Claims.ClaimsIdentity(new List<Claim>
                 {
-                    new Claim("dealername", dealername)
+                    new Claim("dealerId", resDealerId.ToString())
 
                 }),
+                Issuer = jwtIssure,
                 Expires = tokenExpiryTimeStamp,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256)
             };
