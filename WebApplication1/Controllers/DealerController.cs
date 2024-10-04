@@ -69,11 +69,12 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPut]
+        [Route("{dealerId}")]
         [Authorize]
-        public async Task<ActionResult> UpdateDealerAsync(Dealer dealer)
+        public async Task<ActionResult> UpdateDealerAsync([FromRoute]int dealerId, Dealer dealer)
         {
             try{
-                await _dealerRepository.UpdateDealerAsync(dealer);
+                await _dealerRepository.UpdateDealerAsync(dealerId, dealer);
                 return Ok(); 
             }
             catch(InvalidDataException idex)
