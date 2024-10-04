@@ -7,6 +7,6 @@ namespace WebApplication1.Repositories
 
         Task<Dealer> GetByIdAsync(int dealerId);
         Task<int> InsertDealerAsync(Dealer dealer);
-        Task UpdateDealerAsync(Dealer dealer);
+        Task<Dealer> UpdateDealerAsync(int dealerId, Dealer dealer);
     }
 }

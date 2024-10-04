@@ -188,7 +188,7 @@ namespace WebApplication1.Repositories{
                     existRec.make = dealerCarStockInfoAdjRequest.make;
                     existRec.model = dealerCarStockInfoAdjRequest.model;
                     existRec.year = dealerCarStockInfoAdjRequest.year;
-                    return existRec; 
+                    return existRec;
                 }
             }
         }

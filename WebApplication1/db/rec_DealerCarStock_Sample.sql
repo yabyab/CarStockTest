@@ -1,0 +1,19 @@
+-- SQLite
+INSERT INTO DealerCarStock (dealerid, model, make, year, price, quantity, create_at, update_at)
+VALUES 
+('1', 'echo','toyota', '2010', '8000', '30', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('1', 'GR','toyota', '2023', '40000', '100', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('1', 'Corolla','toyota', '1994', '20000', '5', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('1', 'Corolla','toyota', '1998', '30000', '5', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('2', 'swift','suzuki', '2015', '8000', '20', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('2', 'swiftsport','suzuki', '2016', '9000', '50', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('2', 'A6','audi', '2010', '50000', '3', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('3', 'A5','audi', '2010', '10000', '20', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('3', 'Q5','audi', '2012', '8500', '10', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('3', 'ES300','lexus', '2024', '80000', '12', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('4', 'LS500','lexus', '2024', '90000', '8', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('4', 'ix500','lexus', '2010', '8000', '7', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('4', 'mazda2','mazda', '2024', '32173', '5', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('4', 'mazda3','mazda', '2024', '41466', '5', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('4', 'mazda6','mazda', '2024', '51678', '5', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+;
