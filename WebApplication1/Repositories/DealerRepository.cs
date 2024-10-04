@@ -75,12 +75,13 @@ namespace WebApplication1.Repositories
                     
                     recCnt = await connection.ExecuteAsync(
                         @"UPDATE Dealer 
-                        SET dealername = @dealername, dealeremail = @dealeremail, updateTime = @updateTime 
+                        SET dealername = @dealername, dealeremail = @dealeremail, update_at = @updateTime 
                         WHERE dealerid = @dealerid", 
                         new {
                             dealername = dealer.dealername,
                             dealeremail = dealer.dealeremail,
-                            updateTime=DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
+                            updateTime = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
+                            dealerid = dealerId
                         }, transaction);
                     if(recCnt < 1){
                         await transaction.RollbackAsync();

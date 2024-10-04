@@ -14,9 +14,12 @@ using System.Diagnostics;
 namespace WebApplication1{
     public class JwtAuthenticationManager{
         private IConfiguration _configuration;
+
+        public JwtAuthenticationManager(){
+            _configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+        }
         public JwtAuthResponse? Authenticate (string dealername, string email, int? dealerid)
         {
-            _configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
             string jwtIssure = _configuration.GetSection("JwtSettings")["Issuer"];
             
             int resDealerId;
@@ -65,12 +68,34 @@ namespace WebApplication1{
             };
         }
 
+        public async Task<bool> matchDealerToken(string token, int dealerid)
+        {
+            using(var connection = GetConnection())
+            {
+                connection.OpenAsync();
+                string sqlStr = @"SELECT *
+                        FROM DealerToken 
+                        WHERE token = @token;";
+                var extToken = await connection.QueryFirstOrDefaultAsync<DealerToken>(
+                    sqlStr,
+                    new {token = token}
+                );
+                if(extToken != null){
+                    DateTime dtExpire = DateTime.Parse(extToken.expired_at);
+                    // DateTime.Compare(t0, t1), if t0 > t1 = 1, t0 == t1 = 0, t0 < t1 = -1
+                    int cmp = DateTime.Compare(DateTime.UtcNow, dtExpire);
+                    return cmp >= 0;
+                }else{
+                    return false;
+                }
+            }
+        }
+
         private bool InsertUpdateDealerLoginToken(string token, int dealerid, string expired_at)
         {
             using(var connection = GetConnection())
             {
                 string sqlStr = "";
-                Debugger.Break();
                 connection.Open();
                 using(var transaction = connection.BeginTransaction()){
                     sqlStr = @"SELECT *
@@ -81,17 +106,16 @@ namespace WebApplication1{
                         new {dealerId = dealerid}, transaction);
                     int res;
                     if(extToken != null){
+                        extToken.token = token;
+                        extToken.expired_at = expired_at;
                         sqlStr = @"
                         UPDATE DealerToken SET token=@token, expired_at=@expired_at
-                        WHERE id=@Id AND dealerid=@dealerid;";
-                        res = connection.Execute(sqlStr,
-                        new{
-                            token = token,
-                            expired_at = expired_at,
-                            Id = extToken.id,
-                            dealerid = dealerid
-                        },
-                        transaction);
+                        WHERE id=@id AND dealerid=@dealerid;";
+                        res = connection.Execute(
+                            sqlStr,
+                            extToken,
+                            transaction
+                        );
                     }else{
                         sqlStr = @"
                         INSERT INTO DealerToken (dealerid, token, expired_at)

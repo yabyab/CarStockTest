@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -61,21 +64,37 @@ namespace WebApplication1.Controllers
         [Authorize]
         public async Task<ActionResult<Dealer>> GetDealerById(int dealerId)
         {
+            try{
+            await this.AuthorizationDealerAsync(dealerId);
             var result = await _dealerRepository.GetByIdAsync(dealerId);
             if(result == null)
                 return BadRequest("Dealer Not Found");
             else
                 return Ok(result);
+
+            }
+            catch(UnauthorizedAccessException uaex)
+            {
+                return Unauthorized(uaex.Message);
+            }
+            catch (Exception e){
+                return StatusCode(500, e.Message);
+            }
         }
 
         [HttpPut]
         [Route("{dealerId}")]
         [Authorize]
-        public async Task<ActionResult> UpdateDealerAsync([FromRoute]int dealerId, Dealer dealer)
+        public async Task<ActionResult<Dealer>> UpdateDealerAsync([FromRoute]int dealerId, Dealer dealer)
         {
             try{
-                await _dealerRepository.UpdateDealerAsync(dealerId, dealer);
-                return Ok(); 
+                await this.AuthorizationDealerAsync(dealerId);
+                var result = await _dealerRepository.UpdateDealerAsync(dealerId, dealer);
+                return Ok(result); 
+            }
+            catch(UnauthorizedAccessException uaex)
+            {
+                return Unauthorized(uaex.Message);
             }
             catch(InvalidDataException idex)
             {
@@ -85,6 +104,17 @@ namespace WebApplication1.Controllers
                 return StatusCode(500, e.Message);
             }
             
+        }
+        private async Task AuthorizationDealerAsync(int dealerId){
+            var headerctx = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+            if(headerctx == null){
+                throw new Exception("Cannot find Token from header");
+            }
+            var accessToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault().Split(' ')[1];
+            var jwtAuthenticationManager = new JwtAuthenticationManager();
+            bool isValidAuthorized = await jwtAuthenticationManager.matchDealerToken(accessToken, dealerId);
+            if(!isValidAuthorized)
+                throw new UnauthorizedAccessException("Given Dealer id in URI not match with its token");
         }
     }
 }
