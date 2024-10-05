@@ -47,7 +47,7 @@ namespace WebApplication1.Controllers
             }
             catch(InvalidDataException idex)
             {
-                return Ok(idex.Message); 
+                return BadRequest(idex.Message); 
             }
             catch (Exception ex){
                 return StatusCode(500, ex.Message);
@@ -97,7 +97,7 @@ namespace WebApplication1.Controllers
             }
             catch(InvalidDataException idex)
             {
-                return Ok(idex.Message); 
+                return BadRequest(idex.Message); 
             }
             catch (Exception e){
                 return StatusCode(500, e.Message);
