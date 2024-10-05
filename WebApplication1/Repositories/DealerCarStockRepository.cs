@@ -12,7 +12,7 @@ namespace WebApplication1.Repositories{
             _configuration = configuration;
         }
 
-        public async Task DeleteDealerCarStockAsync(int dealerId, int stockId)
+        public async Task DeleteDealerCarStockAsync(int dealerId, DealerCarStock dealerCarStock)
         {
             using(var connection = GetConnection()){
                 await connection.OpenAsync();
@@ -20,7 +20,7 @@ namespace WebApplication1.Repositories{
                     var existRec = await connection.QuerySingleOrDefaultAsync<DealerCarStock>(
                         @"SELECT * 
                         FROM DealerCarStock
-                        WHERE stockid = @id;", new {id = stockId}, transaction);
+                        WHERE stockid = @stockid AND dealerid = @dealerid AND make = @make AND model = @model AND year = @year;", dealerCarStock, transaction);
                     if(existRec == null){
                             await transaction.RollbackAsync();
                             throw new ArgumentException(@"Given car stock id has cannot be found in the stock.", "stockId");
@@ -33,7 +33,7 @@ namespace WebApplication1.Repositories{
 
                     int recCnt = await connection.ExecuteAsync(
                         @"DELETE FROM DealerCarStock 
-                        WHERE stockid = @id", new {id = stockId}, transaction);
+                        WHERE stockid = @stockid", new {stockid = dealerCarStock.stockid}, transaction);
                     if(recCnt < 1){
                         await transaction.RollbackAsync();
                         throw new Exception("Dealer car stock cannot be Deleted.");
@@ -97,7 +97,7 @@ namespace WebApplication1.Repositories{
             }
         }
 
-        public async Task<int> InsertDealerCarStockAsync(DealerCarStock dealerCarStock)
+        public async Task<DealerCarStock> InsertDealerCarStockAsync(DealerCarStock dealerCarStock)
         {
             using(var connection = GetConnection()){
                 await connection.OpenAsync();
@@ -124,8 +124,19 @@ namespace WebApplication1.Repositories{
                         await transaction.RollbackAsync();
                         throw new Exception(@"Dealer car stock cannot be created.");
                     }
+
+                    sqlStr = @"
+                    SELECT * FROM DealerCarStock WHERE stockid = @stockid";
+                    var newStock = await connection.QueryFirstAsync<DealerCarStock>(sqlStr, 
+                    resStockId,
+                    transaction);
+                    if(newStock == null){
+                        await transaction.RollbackAsync();
+                        throw new Exception(@"Dealer car stock cannot be retrieved.");
+                    }
+                    
                     await transaction.CommitAsync();
-                    return resStockId;
+                    return newStock;
                 }
             }
         }

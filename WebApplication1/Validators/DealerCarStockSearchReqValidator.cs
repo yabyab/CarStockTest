@@ -3,7 +3,7 @@ using WebApplication1.Models;
 
 namespace WebApplication1.Validators;
 
-public class DealerCarStockSearchReqValidator :  AbstractValidator<DealerCarStockInfoAdjRequest>
+public class DealerCarStockSearchReqValidator :  AbstractValidator<DealerCarstockSearchRequest>
 {
     public DealerCarStockSearchReqValidator()
     {

@@ -179,13 +179,13 @@ namespace WebApplication1.Controllers{
 
         [HttpDelete]
         [Authorize]
-        public async Task<ActionResult<DealerCarStock>> DeleteDealerCarStock(int stockid)
+        public async Task<ActionResult<DealerCarStock>> DeleteDealerCarStock(DealerCarStock dealerCarStock)
         {
             try{
                 int dealerId = await RetrieveDealerIdFromTokenAsync();
                 await AuthorizationDealerAsync(dealerId);
 
-                await _dealerCarStockRepository.DeleteDealerCarStockAsync(dealerId, stockid);
+                await _dealerCarStockRepository.DeleteDealerCarStockAsync(dealerId, dealerCarStock);
                 return Ok(); 
             }
             catch(UnauthorizedAccessException uaex)
