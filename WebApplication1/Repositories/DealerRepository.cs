@@ -55,18 +55,20 @@ namespace WebApplication1.Repositories
             }
         }
 
-        public async Task<Dealer> UpdateDealerAsync(int dealerId, Dealer dealer)
+        public async Task<Dealer> UpdateDealerAsync(Dealer dealer, int dealerId)
         {
             using(var connection = GetConnection()){
                 await connection.OpenAsync();
                 using(var transaction = await connection.BeginTransactionAsync()){
-                    if(dealerId != dealer.dealerid){
-                        throw new InvalidDataException("you are disallowed to modify other dealer's information.");
-                    }
                     int? recCnt = await connection.QuerySingleOrDefaultAsync<int>(
                         @"SELECT count(dealerid) 
                         FROM Dealer 
-                        WHERE dealername = @dealername AND dealeremail = @dealeremail AND dealerid != @dealerid ", dealer, transaction);
+                        WHERE dealername = @dealername AND dealeremail = @dealeremail AND dealerid != @dealerid ",
+                        new {
+                            dealername = dealer.dealername,
+                            dealeremail = dealer.dealeremail,
+                            dealerid = dealerId
+                        }, transaction);
                     if(recCnt > 0){
                             await transaction.RollbackAsync();
                             throw new InvalidDataException("Dealer information gonna to update has already been used.");
@@ -94,12 +96,12 @@ namespace WebApplication1.Repositories
             }
         }
 
-        public Dealer GetDealerByNameAndEmail(string name, string email)
+        public int? GetDealerIdByNameAndEmail(string name, string email)
         {
             using(var connection = GetConnection())
             {
-                var dealer = connection.QueryFirstOrDefault<Dealer>("SELECT * FROM Dealer WHERE dealername = @dealername AND dealeremail = @dealeremail", new{ dealername = name, dealeremail = email});
-                return dealer;
+                var dealerId = connection.QueryFirstOrDefault<int?>("SELECT dealerid FROM Dealer WHERE dealername = @dealername AND dealeremail = @dealeremail LIMIT 1;", new{ dealername = name, dealeremail = email});
+                return dealerId;
             }
         }
 

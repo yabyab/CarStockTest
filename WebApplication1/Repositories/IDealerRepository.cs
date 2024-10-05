@@ -3,10 +3,9 @@ namespace WebApplication1.Repositories
 {
     public interface IDealerRepository
     {
-        // Dealer GetDealerByNameAndEmail(string name, string email);
 
         Task<Dealer> GetByIdAsync(int dealerId);
         Task<int> InsertDealerAsync(Dealer dealer);
-        Task<Dealer> UpdateDealerAsync(int dealerId, Dealer dealer);
+        Task<Dealer> UpdateDealerAsync(Dealer dealer, int dealerId);
     }
 }

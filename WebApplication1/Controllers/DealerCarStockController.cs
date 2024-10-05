@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models;
@@ -17,11 +18,11 @@ namespace WebApplication1.Controllers{
         }
 
         [HttpGet]
-        [Route("{dealerId}")]
         [Authorize]
-        public async Task<ActionResult<List<DealerCarStock>>> GetAllDealerCarStockByDealerId(int dealerId)
+        public async Task<ActionResult<List<DealerCarStock>>> GetAllDealerCarStockByDealerId()
         {
             try{
+                int dealerId = await RetrieveDealerIdFromTokenAsync();
                 await AuthorizationDealerAsync(dealerId);
                 var result = await _dealerCarStockRepository.GetAllDealerCarStockByDealerIdAsync(dealerId);
                 return Ok(result);
@@ -37,11 +38,11 @@ namespace WebApplication1.Controllers{
         }
 
         [HttpPost]
-        [Route("{dealerId}")]
         [Authorize]
-        public async Task<ActionResult> AddCarStockAsync([FromRoute] int dealerId, DealerCarStock dealerCarStock)
+        public async Task<ActionResult> AddCarStockAsync(DealerCarStock dealerCarStock)
         {
             try{
+                int dealerId = await RetrieveDealerIdFromTokenAsync();
                 await AuthorizationDealerAsync(dealerId);
 
                 dealerCarStock.dealerid = dealerId;
@@ -62,20 +63,18 @@ namespace WebApplication1.Controllers{
         }
 
         [HttpGet]
-        [Route("{dealerId}/search")]
+        [Route("search")]
         [Authorize]
-        public async Task<ActionResult<List<DealerCarStock>>> SearchDealerCarStock([FromRoute]int dealerId, [FromQuery]string? make, [FromQuery]string? model, [FromQuery] int? year)
+        public async Task<ActionResult<List<DealerCarStock>>> SearchDealerCarStock(DealerCarstockSearchRequest dealerCarstockSearchRequest)
         {
             try{
+                int dealerId = await RetrieveDealerIdFromTokenAsync();
                 await AuthorizationDealerAsync(dealerId);
+                string make = (dealerCarstockSearchRequest.make == null) ? "": dealerCarstockSearchRequest.make;
+                string model = (dealerCarstockSearchRequest.model == null) ? "": dealerCarstockSearchRequest.model;
+                int year = (dealerCarstockSearchRequest.year == null) ? -1: (int)dealerCarstockSearchRequest.year;
 
-                if(make == null)
-                    make = "";
-                if(model == null)
-                    model = "";
-                if(year == null)
-                    year = -1;
-                var result = await _dealerCarStockRepository.SearchDealerCarStockAsync(dealerId, make, model, (int)year);
+                var result = await _dealerCarStockRepository.SearchDealerCarStockAsync(dealerId, make, model, year);
                 return Ok(result);
             }
             catch(UnauthorizedAccessException uaex)
@@ -92,11 +91,12 @@ namespace WebApplication1.Controllers{
         }
 
         [HttpPut]
-        [Route("{dealerId}/AdjQty")]
+        [Route("AdjQty")]
         [Authorize]
-        public async Task<ActionResult<DealerCarStock>> UpdateCarStockQuantity([FromRoute]int dealerId, DealerCarStockQtyAdjRequest dealerCarStockQtyAdjRequest)
+        public async Task<ActionResult<DealerCarStock>> UpdateCarStockQuantity(DealerCarStockQtyAdjRequest dealerCarStockQtyAdjRequest)
         {
             try{
+                int dealerId = await RetrieveDealerIdFromTokenAsync();
                 await AuthorizationDealerAsync(dealerId);
 
                 var result = await _dealerCarStockRepository.UpdateDealerCarStockQtyAsync(dealerId, dealerCarStockQtyAdjRequest);
@@ -120,11 +120,12 @@ namespace WebApplication1.Controllers{
         }
 
         [HttpPut]
-        [Route("{dealerId}/AdjPrice")]
+        [Route("AdjPrice")]
         [Authorize]
-        public async Task<ActionResult<DealerCarStock>> UpdateCarStockPrice([FromRoute]int dealerId, DealerCarStockPriceAdjRequest dealerCarStockPriceAdjRequest)
+        public async Task<ActionResult<DealerCarStock>> UpdateCarStockPrice(DealerCarStockPriceAdjRequest dealerCarStockPriceAdjRequest)
         {
             try{
+                int dealerId = await RetrieveDealerIdFromTokenAsync();
                 await AuthorizationDealerAsync(dealerId);
 
                 var result = await _dealerCarStockRepository.UpdateDealerCarStockPriceAsync(dealerId, dealerCarStockPriceAdjRequest);
@@ -148,11 +149,12 @@ namespace WebApplication1.Controllers{
         }
 
         [HttpPut]
-        [Route("{dealerId}/AdjInfo")]
+        [Route("AdjInfo")]
         [Authorize]
-        public async Task<ActionResult<DealerCarStock>> UpdateCarStockInfo([FromRoute]int dealerId, DealerCarStockInfoAdjRequest dealerCarStockInfoAdjRequest)
+        public async Task<ActionResult<DealerCarStock>> UpdateCarStockInfo(DealerCarStockInfoAdjRequest dealerCarStockInfoAdjRequest)
         {
             try{
+                int dealerId = await RetrieveDealerIdFromTokenAsync();
                 await AuthorizationDealerAsync(dealerId);
 
                 var result = await _dealerCarStockRepository.UpdateDealerCarStockInfoAsync(dealerId, dealerCarStockInfoAdjRequest);
@@ -176,11 +178,11 @@ namespace WebApplication1.Controllers{
         }
 
         [HttpDelete]
-        [Route("{dealerId}")]
         [Authorize]
-        public async Task<ActionResult<DealerCarStock>> DeleteDealerCarStock([FromRoute]int dealerId, int stockid)
+        public async Task<ActionResult<DealerCarStock>> DeleteDealerCarStock(int stockid)
         {
             try{
+                int dealerId = await RetrieveDealerIdFromTokenAsync();
                 await AuthorizationDealerAsync(dealerId);
 
                 await _dealerCarStockRepository.DeleteDealerCarStockAsync(dealerId, stockid);
@@ -203,9 +205,27 @@ namespace WebApplication1.Controllers{
             }
         }
 
+        private async Task<int> RetrieveDealerIdFromTokenAsync(){
+            var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+            if(authHeader == null){
+                throw new Exception("Cannot find Token from header");
+            }
+            var accessToken = authHeader.Split(' ')[1];
+            var jwtAuthenticationManager = new JwtAuthenticationManager();
+            int resDealerId = await jwtAuthenticationManager.GetDealeridByToken(accessToken);
+            if(resDealerId == -1)
+            {
+                throw new Exception("Given Token Cannot retrieve Dealer ");
+            }
+            else
+            {
+                return resDealerId;
+            }
+        }
+
         private async Task AuthorizationDealerAsync(int dealerId){
-            var headerctx = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
-            if(headerctx == null){
+            var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+            if(authHeader == null){
                 throw new Exception("Cannot find Token from header");
             }
             var accessToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault().Split(' ')[1];

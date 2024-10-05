@@ -23,13 +23,11 @@ namespace WebApplication1{
             int resDealerId;
             if(dealerid == null){
                 DealerRepository dealerRepo = new DealerRepository(_configuration);
-                Dealer res = dealerRepo.GetDealerByNameAndEmail(dealername, email);
-                Console.WriteLine(res == null ? "Nothing can be query from LocalController" : res.Print());
-                
+                int? res = dealerRepo.GetDealerIdByNameAndEmail(dealername, email);
                 if (res == null){
                     return null;
                 }else{
-                    resDealerId = res.dealerid;
+                    resDealerId = (int)res;
                 }
             }else{
                 resDealerId = (int)dealerid;
@@ -61,12 +59,38 @@ namespace WebApplication1{
             return new JwtAuthResponse
             {
                 token = token,
-                user_id = resDealerId,
+                dealer_id = resDealerId,
                 expired_at = tokenExpiryTimeStamp.ToString("yyyy-MM-dd HH:mm:ss")
             };
         }
 
-        public async Task<bool> matchDealerToken(string token, int dealerid)
+        public async Task<bool> matchDealerToken(string token, int dealerId)
+        {
+            using(var connection = GetConnection())
+            {
+                connection.OpenAsync();
+                string sqlStr = @"SELECT *
+                        FROM DealerToken 
+                        WHERE token = @token;";
+                var extToken = await connection.QueryFirstOrDefaultAsync<DealerToken>(
+                    sqlStr,
+                    new {token = token}
+                );
+                if(extToken != null){
+                    if(extToken.dealerid != dealerId){
+                        return false;
+                    }
+                    DateTime dtExpire = DateTime.Parse(extToken.expired_at);
+                    // DateTime.Compare(t0, t1), if t0 > t1 = 1, t0 == t1 = 0, t0 < t1 = -1
+                    int cmp = DateTime.Compare(DateTime.UtcNow, dtExpire);
+                    return cmp >= 0;
+                }else{
+                    return false;
+                }
+            }
+        }
+
+        public async Task<int> GetDealeridByToken(string token)
         {
             using(var connection = GetConnection())
             {
@@ -82,9 +106,12 @@ namespace WebApplication1{
                     DateTime dtExpire = DateTime.Parse(extToken.expired_at);
                     // DateTime.Compare(t0, t1), if t0 > t1 = 1, t0 == t1 = 0, t0 < t1 = -1
                     int cmp = DateTime.Compare(DateTime.UtcNow, dtExpire);
-                    return cmp >= 0;
+                    if(cmp >= 0){
+                        return extToken.dealerid;
+                    }
+                    return -1;
                 }else{
-                    return false;
+                    return -1;
                 }
             }
         }

@@ -67,26 +67,26 @@ namespace WebApplication1.Repositories{
             string yearStr = "";
             if(make != ""){
                 make = String.Format(@"%{0}%", make);
-                cond += String.Format(@"dcs.make LIKE {0}", make);
+                cond += String.Format(@"dcs.make LIKE @make", make);
             }
             if(model != ""){
                 if(cond != ""){
                     cond += " OR ";
                 }
                 model = String.Format(@"%{0}%", model);
-                cond +=  String.Format(@"dcs.model LIKE {0}", model);
+                cond +=  String.Format(@"dcs.model LIKE @model", model);
             }
             if(year >= 0){
                 if(cond != ""){
                     cond += " OR ";
                 }
-                cond +=  String.Format(@"dcs.year >= '{0}'",year);
+                cond +=  String.Format(@"dcs.year >= @year",year);
             }
             cond = " (" + cond + ")";
             using(var connection = GetConnection()){
                 
                 var sql = GetDealeCarStockSql(1, cond);
-                var dealerCarStocks = await connection.QueryAsync<DealerCarStock>(sql, new {id = dealerId});
+                var dealerCarStocks = await connection.QueryAsync<DealerCarStock>(sql, new {id = dealerId, make = make, model = model, year = year});
                 if(dealerCarStocks == null ||
                     dealerCarStocks.ToList().Count() == 0){
                         throw new ArgumentException(@"No Car stock is found by given make and model");

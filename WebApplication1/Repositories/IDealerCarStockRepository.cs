@@ -3,7 +3,6 @@ namespace WebApplication1.Repositories;
 
 public interface IDealerCarStockRepository
 {
-    // Dealer GetDealerByNameAndEmail(string name, string email);
     Task<List<DealerCarStock>> GetAllDealerCarStockByDealerIdAsync(int dealerId);
     Task<DealerCarStock> GetDealerCarStockByStockIdAsync(int stockId);
     Task<List<DealerCarStock>> SearchDealerCarStockAsync(int dealerId, string make, string model, int year);

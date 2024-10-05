@@ -1,3 +1,4 @@
+using System.CodeDom;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models;
@@ -55,18 +56,21 @@ namespace WebApplication1.Controllers
         }
 
         [HttpGet]
-        [Route("{dealerId}")]
         [Authorize]
-        public async Task<ActionResult<Dealer>> GetDealerById(int dealerId)
+        public async Task<ActionResult<Dealer>> GetDealerById()
         {
             try{
-            await this.AuthorizationDealerAsync(dealerId);
-            var result = await _dealerRepository.GetByIdAsync(dealerId);
-            if(result == null)
-                return BadRequest("Dealer Not Found");
-            else
-                return Ok(result);
-
+                int dealeridFromToken = await RetrieveDealerIdFromTokenAsync();
+                await this.AuthorizationDealerAsync(dealeridFromToken);
+                var result = await _dealerRepository.GetByIdAsync(dealeridFromToken);
+                if(result == null)
+                {
+                    return BadRequest("Dealer Not Found");
+                }
+                else
+                {
+                    return Ok(result);
+                }
             }
             catch(UnauthorizedAccessException uaex)
             {
@@ -78,13 +82,13 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPut]
-        [Route("{dealerId}")]
         [Authorize]
-        public async Task<ActionResult<Dealer>> UpdateDealerAsync([FromRoute]int dealerId, Dealer dealer)
+        public async Task<ActionResult<Dealer>> UpdateDealerAsync(Dealer dealer)
         {
             try{
-                await this.AuthorizationDealerAsync(dealerId);
-                var result = await _dealerRepository.UpdateDealerAsync(dealerId, dealer);
+                int dealeridFromToken = await RetrieveDealerIdFromTokenAsync();
+                await this.AuthorizationDealerAsync(dealeridFromToken);
+                var result = await _dealerRepository.UpdateDealerAsync(dealer, dealeridFromToken);
                 return Ok(result); 
             }
             catch(UnauthorizedAccessException uaex)
@@ -100,16 +104,34 @@ namespace WebApplication1.Controllers
             }
             
         }
-        private async Task AuthorizationDealerAsync(int dealerId){
-            var headerctx = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
-            if(headerctx == null){
+
+        private async Task<int> RetrieveDealerIdFromTokenAsync(){
+            var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+            if(authHeader == null){
                 throw new Exception("Cannot find Token from header");
             }
-            var accessToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault().Split(' ')[1];
+            var accessToken = authHeader.Split(' ')[1];
+            var jwtAuthenticationManager = new JwtAuthenticationManager();
+            int resDealerId = await jwtAuthenticationManager.GetDealeridByToken(accessToken);
+            if(resDealerId == -1)
+            {
+                throw new Exception("Given Token Cannot retrieve Dealer ");
+            }
+            else
+            {
+                return resDealerId;
+            }
+        }
+        private async Task AuthorizationDealerAsync(int dealerId){
+            var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+            if(authHeader == null){
+                throw new Exception("Cannot find Token from header");
+            }
+            var accessToken = authHeader.Split(' ')[1];
             var jwtAuthenticationManager = new JwtAuthenticationManager();
             bool isValidAuthorized = await jwtAuthenticationManager.matchDealerToken(accessToken, dealerId);
             if(!isValidAuthorized)
-                throw new UnauthorizedAccessException("Given Dealer id in URI not match with its token");
+                throw new UnauthorizedAccessException("Given Dealer id does not match with its token");
         }
     }
 }
