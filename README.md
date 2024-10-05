@@ -35,3 +35,18 @@ In the dealer's owned car stock part, dealers are available to:
 | POST           | /api/Stock/AdjQty    | Update a specific car logged in dealer owned car stock level                                         | Bearer Token  |
 | POST           | /api/Stock/AdjPrice  | Update a specific car logged in dealer owned car price                                               | Bearer Token  |
 | POST           | /api/Stock/AdjInfo   | Update a specific car logged in dealer owned car model, make and year                                | Bearer Token  |
+
+# API Input Usage
+| HTTP Method    | URI                  | Input format     | Input Schemas                                                                                      | Input Sample                                  |
+|----------------|----------------------|------------------|----------------------------------------------------------------------------------------------------|-----------------------------------------------|
+| POST           | /api/Dealer/Login    | application/json | {<br>&emsp;**"dealername"**	string<br>&emsp;&emsp;nullable: false,<br>&emsp;&emsp;range: 50 chars max,<br>&emsp;**"dealeremail"** string<br>&emsp;&emsp;nullable: false,<br>&emsp;&emsp;range: 50 chars max,<br>&emsp;&emsp;validation: email format,<br>} | {<br>&emsp;"dealername" : "rose",<br>&emsp;"dealeremail" : "rose@testmail.com"<br>} |
+| POST           | /api/Dealer/Register | application/json | {<br>&emsp;**"dealername"**	string<br>&emsp;&emsp;nullable: false,<br>&emsp;&emsp;range: 50 chars max,<br>&emsp;**"dealeremail"** string<br>&emsp;&emsp;nullable: false,<br>&emsp;&emsp;range: 50 chars max,<br>&emsp;&emsp;validation: email format,<br>} | {<br>&emsp;"dealername" : "rose",<br>&emsp;"dealeremail" : "rose@testmail.com"<br>} |
+| GET            | /api/Dealer          | N/A              | -             | - |
+| PUT            | /api/Dealer          | application/json | {<br>&emsp;**"dealername"**	string<br>&emsp;&emsp;nullable: false,<br>&emsp;&emsp;range: 50 chars max,<br>&emsp;**"dealeremail"** string<br>&emsp;&emsp;nullable: false,<br>&emsp;&emsp;range: 50 chars max,<br>&emsp;&emsp;validation: email format,<br>} | {<br>&emsp;"dealername" : "rose",<br>&emsp;"dealeremail" : "rose@testmail.com"<br>} |
+| GET            | /api/Stock           | N/A              | N/A           |
+| POST           | /api/Stock           | application/json | Bearer Token  |
+| DELETE         | /api/Stock           | application/json | Bearer Token  |
+| GET            | /api/Stock/search    | application/json | Bearer Token  |
+| POST           | /api/Stock/AdjQty    | application/json | Bearer Token  |
+| POST           | /api/Stock/AdjPrice  | application/json | Bearer Token  |
+| POST           | /api/Stock/AdjInfo   | application/json | Bearer Token  |
