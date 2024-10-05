@@ -128,7 +128,9 @@ namespace WebApplication1.Repositories{
                     sqlStr = @"
                     SELECT * FROM DealerCarStock WHERE stockid = @stockid";
                     var newStock = await connection.QueryFirstAsync<DealerCarStock>(sqlStr, 
-                    resStockId,
+                    new {
+                        stockid = resStockId
+                    },
                     transaction);
                     if(newStock == null){
                         await transaction.RollbackAsync();
