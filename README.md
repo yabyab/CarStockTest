@@ -67,3 +67,6 @@ The Output of the API would be in json Detail sample in success return as below
 | POST           | /api/Stock/AdjQty    | Updated complete car stock json                                |{<br>&emsp;"stockid": 16,<br>&emsp;"dealerid": 3,<br>&emsp;"make": "VW",<br>&emsp;"model": "tegruan",<br>&emsp;"year": 2013,<br>&emsp;"price": 3000,<br>&emsp;"quantity": 3<br>} |
 | POST           | /api/Stock/AdjPrice  | Updated complete car stock json                                | {<br>&emsp;"stockid": 16,<br>&emsp;"dealerid": 3,<br>&emsp;"make": "VW",<br>&emsp;"model": "tegruan",<br>&emsp;"year": 2013,<br>&emsp;"price": 2500,<br>&emsp;"quantity": 3<br>} |
 | POST           | /api/Stock/AdjInfo   | Updated complete car stock json                                | {<br>&emsp;"stockid": 16,<br>&emsp;"dealerid": 3,<br>&emsp;"make": "VW",<br>&emsp;"model": "tega2",<br>&emsp;"year": 2013,<br>&emsp;"price": 2500,<br>&emsp;"quantity": 3<br>} |
+
+# API Output Exception Handle
+The API should return in json or nothing in HTTP Status Code 200 if in succeed. Otherwise, it should return in 400 Bad request for handled error or 401 unauthorized for invalid token. System exception would return in 500 server error as reference.
